@@ -8,17 +8,65 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var newTask = ""
+    @State private var tasks = [String]()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack {
+                TextField("New Task", text: $newTask, onCommit: addTask)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+
+                List {
+                    ForEach(tasks.indices, id: \.self) { index in
+                        HStack {
+                            TextField("Edit Task", text: $tasks[index], onCommit: {
+                                // Save changes
+                            })
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading)
+
+                            Spacer()
+
+                            Button(action: {
+                                // Mark task as completed
+                                tasks.remove(at: index)
+                            }) {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                    .onDelete(perform: deleteTask)
+                }
+
+                Button(action: {
+                    tasks.removeAll()
+                }) {
+                    Text("Clear All Tasks")
+                        .foregroundColor(.red)
+                }
+                .padding()
+            }
+            .navigationTitle("To-Do List")
         }
-        .padding()
+    }
+
+    private func addTask() {
+        guard !newTask.isEmpty else { return }
+        let taskToAdd = newTask
+        tasks.append(taskToAdd)
+        newTask = "" // Reset the input field
+    }
+
+    private func deleteTask(offsets: IndexSet) {
+        tasks.remove(atOffsets: offsets)
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
