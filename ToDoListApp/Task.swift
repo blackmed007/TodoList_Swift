@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
+import Combine
 
-struct Task: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+class Task: Identifiable, ObservableObject {
+    var id = UUID()
+    @Published var title: String
+    @Published var isCompleted: Bool
+
+    init(title: String, isCompleted: Bool = false) {
+        self.title = title
+        self.isCompleted = isCompleted
     }
-}
-
-#Preview {
-    Task()
 }

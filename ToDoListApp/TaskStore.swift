@@ -6,13 +6,20 @@
 //
 
 import SwiftUI
+import Combine
 
-struct TaskStore: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+class TaskStore: ObservableObject {
+    @Published var tasks: [Task]
+
+    init(tasks: [Task] = []) {
+        self.tasks = tasks
     }
-}
 
-#Preview {
-    TaskStore()
+    func addTask(_ task: Task) {
+        tasks.append(task)
+    }
+
+    func deleteTask(at offsets: IndexSet) {
+        tasks.remove(atOffsets: offsets)
+    }
 }

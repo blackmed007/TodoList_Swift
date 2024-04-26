@@ -4,15 +4,37 @@
 //
 //  Created by ABDELHAMID on 4/16/24.
 //
-
 import SwiftUI
 
-struct TaskManager: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
+enum TaskError: Error {
+    case invalidTask
+    case indexOutOfRange
 }
 
-#Preview {
-    TaskManager()
+class TaskManager: ObservableObject {
+    @Published var tasks = [String]()
+    @Published var completedTasks = [String]()
+
+    func addTask(_ task: String) throws {
+        guard !task.isEmpty else {
+            throw TaskError.invalidTask
+        }
+        tasks.append(task)
+    }
+
+    func deleteTask(offsets: IndexSet) {
+        tasks.remove(atOffsets: offsets)
+    }
+
+    func completeTask(at index: Int) throws {
+        guard index < tasks.count else {
+            throw TaskError.indexOutOfRange
+        }
+        let completedTask = tasks.remove(at: index)
+        completedTasks.append(completedTask)
+    }
+
+    func moveTask(from source: IndexSet, to destination: Int) {
+        tasks.move(fromOffsets: source, toOffset: destination)
+    }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var newTask = ""
-    @State private var tasks = [String]()
+    @ObservedObject var taskManager = TaskManager()
 
     var body: some View {
         NavigationView {
@@ -17,98 +17,111 @@ struct ContentView: View {
                 VStack {
                     HStack {
                         TextField("New Task", text: $newTask)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: geometry.size.width * 0.6) // Limit the width of the TextField
-                            .padding(.horizontal) // Add horizontal padding
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white)
+                            )
+                        
                         Button(action: {
-                            addTask()
+                            do {
+                                try taskManager.addTask(newTask)
+                                newTask = ""
+                            } catch TaskError.invalidTask {
+                                print("Invalid task!")
+                            } catch {
+                                print("An error occurred: \(error)")
+                            }
                         }) {
                             Text("Add")
+                                .foregroundColor(.white)
+                                .fontWeight(.semibold)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 20)
+                                .background(Color.blue)
+                                .cornerRadius(20)
                         }
                     }
-                    .padding(.horizontal) // Add horizontal padding
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
 
                     ScrollView {
                         LazyVStack {
-                            ForEach(tasks.indices, id: \.self) { index in
+                            ForEach(taskManager.tasks.indices, id: \.self) { index in
                                 HStack {
-                                    TextField("Edit Task", text: $tasks[index], onCommit: {
+                                    TextField("Edit Task", text: $taskManager.tasks[index], onCommit: {
                                         // Save changes
                                     })
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.vertical, 4) // Reduced vertical padding
-                                    .padding(.horizontal, 16) // Add horizontal padding
-                                    .background(Color.white.opacity(0.1)) // Subtle background
-                                    .cornerRadius(10) // Rounded corners
-                                    .shadow(radius: 5) // Add shadow for depth
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 17)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 11)
+                                            .fill(Color.white)
+                                    )
 
                                     Spacer()
 
                                     Button(action: {
-                                        completeTask(at: index)
+                                        do {
+                                            try taskManager.completeTask(at: index)
+                                        } catch TaskError.indexOutOfRange {
+                                            print("Index out of range!")
+                                        } catch {
+                                            print("An error occurred: \(error)")
+                                        }
                                     }) {
-                                        Image(systemName: "checkmark.circle")
+                                        Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
-                                            .padding(4) // Reduced padding
-                                            .background(Color.white.opacity(0.1)) // Subtle background
-                                            .cornerRadius(10) // Rounded corners
-                                            .shadow(radius: 5) // Add shadow for depth
+                                            .padding(8)
+                                            .background(Color.white)
+                                            .cornerRadius(20)
                                     }
                                 }
-                                .padding(.vertical, 4) // Reduced vertical padding
-                                .padding(.horizontal, 16) // Add horizontal padding
-                                .background(Color.white.opacity(0.1)) // Subtle background
-                                .cornerRadius(10) // Rounded corners
-                                .shadow(radius: 5) // Add shadow for depth
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 16)
                             }
-                            .onDelete(perform: deleteTask)
-                            .transition(.slide.animation(.default)) // Apply a slide transition with animation
-
+                            .onDelete(perform: taskManager.deleteTask)
+                            .onMove(perform: taskManager.moveTask)
+                            .transition(.slide.animation(.easeInOut))
                         }
                     }
 
                     Button(action: {
-                        tasks.removeAll()
+                        taskManager.tasks.removeAll()
+                        taskManager.completedTasks.removeAll()
                     }) {
                         Text("Clear All Tasks")
-                            .foregroundColor(.red)
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 24)
+                            .background(Color.red)
+                            .cornerRadius(20)
                     }
                     .padding()
+
+                    Spacer()
+
+                    Text("Abdelhamid")
+                        .font(.custom("Snell Roundhand", size: 25))
+                        .foregroundColor(.black)
+                        .padding(.bottom, 1)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
-                    Image("photo1") // Assuming "photo1.png" is in your asset catalog
+                    Image("photo1")
                         .resizable()
                         .scaledToFill()
-                        .opacity(0.3) // Adjust opacity as needed
+                        .opacity(0.3)
                         .edgesIgnoringSafeArea(.all)
                 )
             }
             .navigationTitle("To-Do List")
+            
         }
     }
-
-    private func addTask() {
-        guard !newTask.isEmpty else { return }
-        withAnimation {
-                tasks.append(newTask)
-            }
-        newTask = "" // Reset the input field
-    }
-
-    private func deleteTask(offsets: IndexSet) {
-        withAnimation {
-                tasks.remove(atOffsets: offsets)
-            }
-    }
-
-    private func completeTask(at index: Int) {
-        _ = withAnimation {
-            tasks.remove(at: index)
-        }
-
-    }
-
 }
 
 struct ContentView_Previews: PreviewProvider {
